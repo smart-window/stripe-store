@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="https://i.imgur.com/sXfwy7l.png">
-</p>
-
 ## Features
 
 - Minimal but well structured
@@ -18,8 +14,8 @@
 
 ```bash
 # installation
-$ git clone https://github.com/saltyshiomix/nextjs-todo-app.git
-$ cd nextjs-todo-app
+$ git clone https://gitlab.com/ProDev555/stripe-store.git
+$ cd stripe-store
 $ yarn (or `npm install`)
 
 # development mode

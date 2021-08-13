@@ -1,9 +1,10 @@
 import React from 'react';
 import { compose } from 'recompose';
-import Todo from './todo';
 
 const Page = (props) => {
-  return <Todo {...props} />;
+  return (
+    <h2> Welcome</h2>
+  );
 };
 
 export default compose()(Page);
