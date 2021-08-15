@@ -3,7 +3,7 @@ import App from 'next/app';
 import withRedux from 'next-redux-wrapper';
 import { Provider } from 'react-redux';
 import store, { Store } from '../store';
-
+import '../styles.css'
 interface AppContext extends NextPageContext {
   store: Store;
 }
