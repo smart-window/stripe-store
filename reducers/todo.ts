@@ -11,7 +11,7 @@ export const initialState = {
   data: [],
 };
 
-export default (state = initialState, action) => {
+ const todoReducer = (state = initialState, action) => {
   const {
     type,
     item,
@@ -53,3 +53,6 @@ export default (state = initialState, action) => {
     }
   }
 };
+
+
+export default todoReducer;

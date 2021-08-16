@@ -7,12 +7,11 @@ import {Comment} from './entity/Comment';
 createConnection().then(async connection => {
     console.log('database connected: ', connection.isConnected);
 
-    // 创建 user 1
     const user = new User('frank', 'b9cbe8d1dfc7c2d531dedfcd4467bf1a');
-    // 创建 post 1
-    const post = new Post(1, '如何保持健康？', '有4种方式可以保持健康，首先应该坚持锻炼，其次是节食。。。。。。');
-    // 创建 comment 1
-    const comment = new Comment(1, 1, '我认为节食不是一个聪明的做法，我认为不应该节食。吃饱了才有力气减肥呢。');
+    
+    const post = new Post(1, 'Test', 'Test');
+    
+    const comment = new Comment(1, 1, 'Test');
 
     const [, userCount] = await connection.manager.findAndCount(User);
     const [, postCount] = await connection.manager.findAndCount(Post);
