@@ -8,3 +8,14 @@ export const AMOUNT_STEP = 5.0
 export const countOptions = [
     "1", "2", "3", "4", "5", "6", "7", "8", "9", "10+"
 ]
+
+export enum OrderStatus {
+    PENDING = "pending",
+    PAYMENT_DONE= "payment done",
+}
+export enum PaymentStatus {
+    PENDING = "pending",
+    DONE= "done",
+    FAILED= "failed",
+    CANCELED= "canceled",
+}

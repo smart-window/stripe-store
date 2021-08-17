@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import {createConnection} from 'typeorm';
 import {User} from './entity/User';
-import {Post} from './entity/Post';
-import {Comment} from './entity/Comment';
+import {Post} from './entity/Products';
+import {Comment} from './entity/Users';
 
 createConnection().then(async connection => {
     console.log('database connected: ', connection.isConnected);
