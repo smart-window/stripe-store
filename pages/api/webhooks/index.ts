@@ -119,7 +119,9 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
     })
   });
   const charge: any = paymentIntent?.charges?.data[0] || {};
-  console.log(JSON.stringify(charge));
+  //console.log(JSON.stringify(charge));
+  console.log(process.env.CLIENT_ID);
+  console.log(process.env.CLIENT_SECRET);
   try {
     const response = await axios.post("https://0h7un0j137.execute-api.ap-south-1.amazonaws.com/triggeremail",
       {
@@ -131,6 +133,11 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
         "tax_details": "0",
         "bill_amount": charge.amount,
         "products": products
+      }, {
+        headers: {
+          client_id: process.env.CLIENT_ID,
+          client_secret: process.env.CLIENT_SECRET
+        }
       })
       console.log("Payment status email sent to ", charge.billing_details.email);
    } catch (error) {
