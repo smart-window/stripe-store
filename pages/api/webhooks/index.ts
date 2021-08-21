@@ -5,7 +5,7 @@ import Cors from 'micro-cors'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import Stripe from 'stripe'
-import { PaymentStatus } from '../../../config'
+import CONFIG, { PaymentStatus } from '../../../config'
 import getDatabaseConnection from '../../../lib/getDatabaseConnection'
 import { CartItems } from '../../../src/entity/CartItems'
 import { Carts } from '../../../src/entity/Carts'
@@ -30,7 +30,7 @@ const cors = Cors({
 })
 
 const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log('Webhook invoked')
+  // LOG Webhook invoked
   if (req.method === 'POST') {
     const buf = await buffer(req)
     const sig = req.headers['stripe-signature']!
@@ -41,13 +41,13 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
       event = stripe.webhooks.constructEvent(buf.toString(), sig, webhookSecret)
     } catch (err) {
       // On error, log and return the error message.
-      console.log(`❌ Error message: ${err.message}`)
+      //LOG Error message: ${err.message}
       res.status(400).send(`Webhook Error: ${err.message}`)
       return
     }
 
     // Successfully constructed event.
-    console.log('✅ event constructed Success:', event.id)
+    // LOG event constructed Success
 
     // Cast event data to Stripe object.
     if (event.type === 'payment_intent.succeeded') {
@@ -55,17 +55,15 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
       const connection = await getDatabaseConnection();
       const payment = await updatedThePayment(connection, paymentIntent);
       sendPaymentStatusEmail(connection, paymentIntent, payment);
-      console.log(`💰 PaymentIntent status: ${paymentIntent.status}`)
+      // LOG PaymentIntent status: ${paymentIntent.status}
     } else if (event.type === 'payment_intent.payment_failed') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
-      console.log(
-        `❌ Payment failed: ${paymentIntent.last_payment_error?.message}`
-      )
+      // LOG  Payment failed: ${paymentIntent.last_payment_error?.message}
     } else if (event.type === 'charge.succeeded') {
-      const charge = event.data.object as Stripe.Charge
-      console.log(`💵 Charge id: ${charge.id}`)
+      const charge = event.data.object as Stripe.Charge;
+      // LOG Charge id: ${charge.id}
     } else {
-      console.warn(`🤷‍♀️ Unhandled event type: ${event.type}`)
+      // LOG Unhandled event type: ${event.type}
     }
 
     // Return a response to acknowledge receipt of the event.
@@ -103,7 +101,7 @@ const updatedThePayment = async (connection, paymentIntent: Stripe.PaymentIntent
 }
 
 const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentIntent, payment: Payments) => {
-  console.log("Payment status email init");
+  // LOG Payment status email init
   const order = await connection.manager.createQueryBuilder(Orders, 'orders')
   .where('orders.paymentId = :paymentId', { paymentId: payment.id })
   .leftJoinAndSelect('orders.orderDetails', 'cartItems')
@@ -119,11 +117,8 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
     })
   });
   const charge: any = paymentIntent?.charges?.data[0] || {};
-  //console.log(JSON.stringify(charge));
-  console.log(process.env.CLIENT_ID);
-  console.log(process.env.CLIENT_SECRET);
   try {
-    const response = await axios.post("https://0h7un0j137.execute-api.ap-south-1.amazonaws.com/triggeremail",
+    const response = await axios.post(CONFIG.LAMBDA_URL,
       {
         "order_id": order.id,
         "customer_name": charge.billing_details.name,
@@ -139,10 +134,10 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
           client_secret: process.env.CLIENT_SECRET
         }
       })
-      console.log("Payment status email sent to ", charge.billing_details.email);
+      //LOG Payment status email sent to 
    } catch (error) {
-    console.error('Failed to sent payment success mail for payment id ', payment.id);
-    console.error(error.message);
+     // LOG error('Failed to sent payment success mail for payment id ')
+     // LOG error.message
   }
 
 }

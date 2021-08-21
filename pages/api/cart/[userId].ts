@@ -1,7 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-
 import getDatabaseConnection from '../../../lib/getDatabaseConnection';
-import { CartItems } from '../../../src/entity/CartItems';
 import { Carts } from '../../../src/entity/Carts';
 
 export default async function handler(

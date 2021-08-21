@@ -8,7 +8,6 @@ import { NextApiRequest, NextApiResponse } from 'next'
  * The important thing is that the product info is loaded from somewhere trusted
  * so you know the pricing information is accurate.
  */
-import inventory from '../../../data/products.json'
 
 import Stripe from 'stripe'
 import { Carts } from '../../../src/entity/Carts'
@@ -24,6 +23,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   // https://github.com/stripe/stripe-node#configuration
   apiVersion: '2020-08-27',
 })
+
+const countryTypePaymentMethodsMap = {
+  Belgium: ['bancontact', 'sofort'],
+  Austria: ['eps', 'sofort'],
+  Germany: ['giropay', 'sofort'],
+  Netherlands: ['ideal', 'sofort'],
+  Poland: ['p24'],
+  Spain: ['sofort'],
+  Italy: ['sofort'],
+  Switzerland: ['sofort'],
+}
 
 export default async function handler(
   req: NextApiRequest,
@@ -44,7 +54,7 @@ export default async function handler(
         const item: any = {
           name: productInfo.name,
           amount: productInfo.price,
-          currency: 'USD',
+          currency: req.body.currency,
           quantity: productInfo.quantity
         }
         if (productInfo.description) item.description = productInfo.description
@@ -54,14 +64,16 @@ export default async function handler(
 
       await createCartAndDetails(connection, req.body.userId, cartItems);
 
+      const countryBasedPaymentTypes = countryTypePaymentMethodsMap[req.body.countryName];
+      const payment_method_types: any = ['card'];
+      if(countryBasedPaymentTypes) {
+        payment_method_types.push(...countryBasedPaymentTypes);
+      }
       // Create Checkout Sessions from body params.
       const params: Stripe.Checkout.SessionCreateParams = {
         submit_type: 'pay',
-        payment_method_types: ['card'],
+        payment_method_types,
         billing_address_collection: 'auto',
-        shipping_address_collection: {
-          allowed_countries: ['US', 'CA'],
-        },
         line_items,
         success_url: `${req.headers.origin}/result?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${req.headers.origin}/`,
@@ -91,13 +103,11 @@ export default async function handler(
 
 const validateCartItems = async (connection, cartDetails) => {
   const productIds = _.map(cartDetails, "id");
-  console.debug("productIds", JSON.stringify(productIds))
   const products = await connection.manager.findByIds(Products, productIds);
-  console.debug("products", JSON.stringify(products))
   const isValid = !_.some(products, product => {
     return !productIds.includes(product.id);
   });
-  console.log("Product validated status ", isValid);
+  // Log isValid
   return isValid
 }
 
@@ -131,7 +141,8 @@ const createCartAndDetails = async (connection, userId, cartItems) => {
       if (cartItemList.length) {
         await connection.manager.save(cartItemList);
       }
-      console.log("Carte created");
+
+      // LOG Cart created
       resolve("success");
     } catch (error) {
       console.error("Cart creation failed ");
@@ -151,11 +162,11 @@ const createPayment = async (connection, userId, totalPrice, paymentId) => {
     payment.amount = totalPrice.toString();
     payment.paymentSessionId = paymentId;
     const paymentEntity = await connection.manager.save(Payments, payment);
-    console.log("Payment Created");
+    // LOG Payment Created
     return { status: true, paymentEntity }
   } catch (error) {
-    console.error("Payment create failed");
-    console.error(error.message);
+    // LOG error Payment create failed
+    // LOG error.message
     return { status: false, message: "Payment create failed" }
   }
 }
@@ -177,8 +188,8 @@ const createOrderAndDetails = async (connection, userId, paymentId, cartItems) =
     await connection.manager.save(OrderDetails, orderItemList);
     return { status: true };
   } catch (error) {
-    console.error("Order create failed");
-    console.error(error.message);
+    // LOG Order create failed
+    // LOG error.message
     return { status: false, message: "Order create failed" }
   }
 }

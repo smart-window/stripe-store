@@ -15,6 +15,7 @@
     "concurrently": "^6.0.0",
     "github-markdown-css": "^4.0.0",
     "gray-matter": "^4.0.2",
+    "iso-country-currency": "^0.5.3",
     "lodash": "^4.17.21",
     "marked": "^2.0.0",
     "md5": "^2.3.0",

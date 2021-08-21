@@ -2,7 +2,6 @@ import React, { ReactNode, useEffect } from 'react'
 import { CartProvider } from 'use-shopping-cart'
 import getStripe from '../utils/get-stripejs'
 import * as config from '../config'
-import axios from 'axios'
 
 const Cart = ({ children }: { children: ReactNode }) => {
 

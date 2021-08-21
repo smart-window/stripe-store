@@ -11,29 +11,6 @@ import { CartItems } from '../src/entity/CartItems';
 
 const connectionManager = getConnectionManager();
 
-// const create = async () => {
-//     // @ts-ignore
-//     return createConnection({
-//         ...config,
-//         entities: [Users, Payments, OrderDetails, Orders, Products, Carts, CartItems]
-//     });
-// };
-
-// const connectionPromise = (async () => {
-//     if (connectionManager.has('default')) {
-//         const connection: Connection = connectionManager.get('default');
-//         console.log('has default connection, close it whatever then create......');
-//         await connection.close();
-//         return create();
-//     }
-//     console.log('no connection existed, create a connection......');
-//     return create();
-// })();
-
-// const getDatabaseConnection = async () => connectionPromise;
-
-// export default getDatabaseConnection;
-
 export const getDatabaseConnection = async (optionOverrides: Record<string, any> = {}): Promise<Connection> => {
     const connectionOptions = await getConnectionOptions();
     const options: any = {
@@ -48,5 +25,3 @@ export const getDatabaseConnection = async (optionOverrides: Record<string, any>
 };
 
 export default getDatabaseConnection;
-
-//export default getDatabaseConnection;

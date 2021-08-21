@@ -1,4 +1,3 @@
-import products from '../data/products.json'
 import { useShoppingCart, formatCurrencyString } from 'use-shopping-cart'
 import { useEffect, useState } from 'react';
 import { countOptions } from '../config';
@@ -7,7 +6,7 @@ import _ from 'lodash';
 
 const Products = () => {
   const { addItem, removeItem } = useShoppingCart()
-  const [productList, setProducts] = useState(products)
+  const [productList, setProducts] = useState([])
 
   const setSelectedOption = (value, productId) => {
     const product = productList.find((product) => product.id == productId);

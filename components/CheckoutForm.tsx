@@ -1,16 +1,19 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import CustomDonationInput from '../components/CustomDonationInput'
 
 import getStripe from '../utils/get-stripejs'
-import { fetchPostJSON } from '../utils/api-helpers'
+import { fetchGetJSON, fetchPostJSON } from '../utils/api-helpers'
 import { formatAmountForDisplay } from '../utils/stripe-helpers'
-import * as config from '../config'
+import config, {MAX_AMOUNT, AMOUNT_STEP, CURRENCY, MIN_AMOUNT} from '../config'
+import _ from 'lodash'
+import { getAllInfoByISO, getISOByParam } from 'iso-country-currency'
 
 const CheckoutForm = () => {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+ 
   const [input, setInput] = useState({
-    customDonation: Math.round(config.MAX_AMOUNT / config.AMOUNT_STEP),
+    customDonation: Math.round(MAX_AMOUNT / AMOUNT_STEP),
   })
 
   const handleInputChange: React.ChangeEventHandler<HTMLInputElement> = (e) =>
@@ -18,7 +21,7 @@ const CheckoutForm = () => {
       ...input,
       [e.currentTarget.name]: e.currentTarget.value,
     })
-
+  
   const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault()
     setLoading(true)
@@ -53,10 +56,10 @@ const CheckoutForm = () => {
         className="checkout-style"
         name={'customDonation'}
         value={input.customDonation}
-        min={config.MIN_AMOUNT}
-        max={config.MAX_AMOUNT}
-        step={config.AMOUNT_STEP}
-        currency={config.CURRENCY}
+        min={MIN_AMOUNT}
+        max={MAX_AMOUNT}
+        step={AMOUNT_STEP}
+        currency={CURRENCY}
         onChange={handleInputChange}
       />
       <button
@@ -64,7 +67,7 @@ const CheckoutForm = () => {
         type="submit"
         disabled={loading}
       >
-        Donate {formatAmountForDisplay(input.customDonation, config.CURRENCY)}
+        Donate {formatAmountForDisplay(input.customDonation, CURRENCY)}
       </button>
     </form>
   )
