@@ -12,7 +12,7 @@ export const countOptions = [
 
 export const Country = [
     "Belgium", "Austria", "Germany", "Netherlands",
-    "Poland", "Spain", "Italy", "Switzerland"
+    "Poland", "Spain", "Italy", "Switzerland", "Russia", "Estonia"
 ] 
 
 export enum OrderStatus {
