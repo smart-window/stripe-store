@@ -4,9 +4,10 @@ import { buffer } from 'micro'
 import Cors from 'micro-cors'
 import moment from 'moment'
 import { NextApiRequest, NextApiResponse } from 'next'
+import { stringify } from 'querystring'
 
 import Stripe from 'stripe'
-import CONFIG, { OrderStatus, PaymentStatus } from '../../../config'
+import CONFIG, { MailContent, OrderStatus, PaymentStatus } from '../../../config'
 import getDatabaseConnection from '../../../lib/getDatabaseConnection'
 import { CartItems } from '../../../src/entity/CartItems'
 import { Carts } from '../../../src/entity/Carts'
@@ -64,12 +65,13 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
       const payment = await updatedThePayment(connection, paymentIntent, paymentIntent.status);
       if (payment && payment.id) {
-        sendPaymentStatusEmail(connection, paymentIntent, payment);
+        sendStatusUpdateEmail(connection, paymentIntent, payment, event.type);
       }
       // LOG PaymentIntent status: ${paymentIntent.status}
     } else if (event.type === 'payment_intent.payment_failed') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
-      await updatedThePayment(connection, paymentIntent, PaymentStatus.FAILED);
+      const payment = await updatedThePayment(connection, paymentIntent, PaymentStatus.FAILED);
+      sendStatusUpdateEmail(connection, paymentIntent, payment, event.type);
       // LOG  Payment failed: ${paymentIntent.last_payment_error?.message}
     } else if (event.type === 'charge.succeeded') {
       const charge = event.data.object as Stripe.Charge;
@@ -77,8 +79,10 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     } else if (event.type === 'charge.refunded') {
       const charge = event.data.object as Stripe.Charge;
       const payment = await updatedThePayment(connection, charge.payment_intent, "refund");
-      if(payment) {
+      if (payment) {
         await updateOrder(connection, payment.id, OrderStatus.REFUNDED);
+        var paymentIntent = typeof charge.payment_intent == "string" ? await stripe.paymentIntents.retrieve(charge.payment_intent) : charge.payment_intent;
+        sendStatusUpdateEmail(connection, paymentIntent, payment, event.type);
       }
     } else {
       // LOG Unhandled event type: ${event.type}
@@ -137,7 +141,7 @@ const updateOrder = async (connection, paymentId, status) => {
     const order: Orders = await connection.manager.findOne(Orders, { where: { paymentId } });
     if (order) {
       order.status = status;
-      order.updatedDate =  moment().utc().toDate();
+      order.updatedDate = moment().utc().toDate();
       await connection.manager.save(Orders, order);
       return { status: true };
     }
@@ -175,7 +179,10 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
         "total_amount": charge.amount,
         "tax_details": "0",
         "bill_amount": charge.amount,
-        "products": products
+        "products": products,
+        "title": "ORDER DETAILS",
+        "order_date": Date.now(),
+        "currencySymbol": "$",
       }, {
       headers: {
         client_id: process.env.CLIENT_ID,
@@ -190,4 +197,69 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
 
 }
 
+const sendStatusUpdateEmail = async (connection, paymentIntent: Stripe.PaymentIntent, payment: Payments, emailType: string) => {
+  // LOG Payment status email init
+  const order = await connection.manager.createQueryBuilder(Orders, 'orders')
+    .where('orders.paymentId = :paymentId', { paymentId: payment.id })
+    .leftJoinAndSelect('orders.orderDetails', 'cartItems')
+    .leftJoinAndSelect('cartItems.product', 'product')
+    .getOne();
+  // const products = [];
+  // _.each(order.orderDetails, order => {
+  //   products.push({
+  //     "name": order.product.name,
+  //     "quantity": order.quantity,
+  //     "unit_price": Number.parseFloat(order.product.price) / order.quantity,
+  //     "sub_total_amount": order.product.price
+  //   })
+  // });
+  const mailContent = getMessageContent(emailType);
+  const charge: any = paymentIntent?.charges?.data[0] || {};
+  try {
+    const response = await axios.post(CONFIG.LAMBDA_URL,
+      {
+        "order_id": order.id,
+        "customer_name": charge.billing_details.name,
+        "customer_email": charge.billing_details.email,
+        "customer_mobile": charge.billing_details.phone,
+        "user_name": charge.billing_details.name,
+        "title": (await mailContent).title,
+        "body": (await mailContent).body,
+        "subject": (await mailContent).title
+      }, {
+      headers: {
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET
+      }
+    })
+    //LOG Payment status email sent to 
+  } catch (error) {
+    // LOG error('Failed to sent payment success mail for payment id ')
+    // LOG error.message
+  }
+
+}
+const getMessageContent = async (type) => {
+  try {
+    let mailContent = { title: null, body: null };
+    switch (type) {
+      case "charge.refunded":
+        return MailContent.REFUNDED;
+        break;
+      case "payment_intent.canceled":
+        return MailContent.FAILED;
+        break;
+
+      case "payment_intent.payment_failed":
+        return MailContent.FAILED;
+        break;
+      default:
+        return mailContent;
+        break;
+    }
+  } catch (error) {
+    // LOG error('Failed to sent payment success mail for payment id ')
+    // LOG error.message
+  }
+};
 export default cors(webhookHandler as any)
