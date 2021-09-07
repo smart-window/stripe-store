@@ -15,16 +15,30 @@ export const Country = [
     "Poland", "Spain", "Italy", "Switzerland", "Russia", "Estonia"
 ] 
 
-export enum OrderStatus {
-    PENDING = "pending",
-    PAYMENT_DONE= "payment done",
-}
 export enum PaymentStatus {
-    PENDING = "pending",
-    DONE= "done",
-    FAILED= "failed",
-    CANCELED= "canceled",
+    PENDING = "Pending",
+    PAYMENT_COMPLETED= "Payment Completed",
+    FAILED= "Failed",
+    CANCELED= "Canceled",
+    VENDOR_REFUND= "Refunded from Vendor",
+    CUSTOMER_CANCELED= "Customer Canceled",
 }
+
+export enum OrderStatus {
+    ORDER_PLACED = "Order Placed",
+    ORDER_DELIVERED = "Order Delivered",
+    REFUND_REQUESTED = "Refund Requested",
+    REFUNDED = "Refunded",
+}
+
+export const RefundReason = [
+    'duplicate', 'fraudulent', 'requested_by_customer'
+]
+
+export const PaymentStatusTypes = [
+    "All", "Pending", "Payment Completed", "Failed", "Canceled", "Refunded from Vendor", 
+    "Order Placed", "Order Delivered", "Refund Requested", "Refunded"
+]
 
 const config = {
     IP_CHECK_URL: "https://ipinfo.io/27.62.34.69/json?token=5da7f0e83e36e3",

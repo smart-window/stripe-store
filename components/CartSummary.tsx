@@ -112,10 +112,10 @@ const CartSummary = () => {
       </button>
       <style jsx>{`
         .country-select {
+          font-size: 15px;
           float: right;
         }
         .country-select label {
-          font-size: 15px;
           margin-right: 10px;
           color: black;
         }

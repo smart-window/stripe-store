@@ -19,6 +19,7 @@ import { Payments } from '../../../src/entity/Payments'
 import { OrderDetails } from '../../../src/entity/OrdersDetails'
 import { Orders } from '../../../src/entity/Orders'
 import { PaymentStatus } from '../../../config'
+import moment from 'moment'
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   // https://github.com/stripe/stripe-node#configuration
   apiVersion: '2020-08-27',
@@ -177,12 +178,18 @@ const createOrderAndDetails = async (connection, userId, paymentId, cartItems) =
     const order = new Orders();
     order.paymentId = paymentId;
     order.userId = userId;
+    order.createdDate =  moment().utc().toDate();
+    order.updatedDate =  moment().utc().toDate();
     const orderEntity = await connection.manager.save(Orders, order);
     _.each(cartItems, product => {
       const orderDetail = new OrderDetails();
+      let amount = product.quantity * Number.parseFloat(product.price);
       orderDetail.productId = product.id;
+      orderDetail.amount = amount.toString();
       orderDetail.quantity = product.quantity;
       orderDetail.orderId = orderEntity.id;
+      orderDetail.createdDate =  moment().utc().toDate();
+      orderDetail.updatedDate =  moment().utc().toDate();
       orderItemList.push(orderDetail);
     })
     await connection.manager.save(OrderDetails, orderItemList);

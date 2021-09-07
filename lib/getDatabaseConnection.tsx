@@ -18,10 +18,15 @@ export const getDatabaseConnection = async (optionOverrides: Record<string, any>
         entities: [Users, Payments, OrderDetails, Orders, Products, Carts, CartItems],
         ...optionOverrides
     };
-    if (connectionManager.has('default')) {
-        await connectionManager.get('default').close();
+    try {
+        if (connectionManager.has('default')) {
+            await connectionManager.get('default').close();
+        }
+    } catch (error) {
+        console.log("ERROR getConnection ", JSON.stringify(error));
     }
     return await createConnection(options);
+
 };
 
 export default getDatabaseConnection;

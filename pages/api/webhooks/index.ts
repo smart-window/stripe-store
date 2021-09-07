@@ -2,10 +2,11 @@ import axios from 'axios'
 import _ from 'lodash'
 import { buffer } from 'micro'
 import Cors from 'micro-cors'
+import moment from 'moment'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 import Stripe from 'stripe'
-import CONFIG, { PaymentStatus } from '../../../config'
+import CONFIG, { OrderStatus, PaymentStatus } from '../../../config'
 import getDatabaseConnection from '../../../lib/getDatabaseConnection'
 import { CartItems } from '../../../src/entity/CartItems'
 import { Carts } from '../../../src/entity/Carts'
@@ -50,20 +51,38 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
     // LOG event constructed Success
 
     // Cast event data to Stripe object.
+    const connection = await getDatabaseConnection();
     if (event.type === 'payment_intent.succeeded') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
-      const connection = await getDatabaseConnection();
-      const payment = await updatedThePayment(connection, paymentIntent);
-      sendPaymentStatusEmail(connection, paymentIntent, payment);
+      const payment = await updatedThePayment(connection, paymentIntent, paymentIntent.status);
+      if (payment && payment.id) {
+        await updateOrder(connection, payment.id, OrderStatus.ORDER_PLACED);
+        sendPaymentStatusEmail(connection, paymentIntent, payment);
+      }
+      // LOG PaymentIntent status: ${paymentIntent.status}
+    } else if (event.type === 'payment_intent.canceled') {
+      const paymentIntent = event.data.object as Stripe.PaymentIntent
+      const payment = await updatedThePayment(connection, paymentIntent, paymentIntent.status);
+      if (payment && payment.id) {
+        sendPaymentStatusEmail(connection, paymentIntent, payment);
+      }
       // LOG PaymentIntent status: ${paymentIntent.status}
     } else if (event.type === 'payment_intent.payment_failed') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
+      await updatedThePayment(connection, paymentIntent, PaymentStatus.FAILED);
       // LOG  Payment failed: ${paymentIntent.last_payment_error?.message}
     } else if (event.type === 'charge.succeeded') {
       const charge = event.data.object as Stripe.Charge;
       // LOG Charge id: ${charge.id}
+    } else if (event.type === 'charge.refunded') {
+      const charge = event.data.object as Stripe.Charge;
+      const payment = await updatedThePayment(connection, charge.payment_intent, "refund");
+      if(payment) {
+        await updateOrder(connection, payment.id, OrderStatus.REFUNDED);
+      }
     } else {
       // LOG Unhandled event type: ${event.type}
+      console.log("event.type ", event.type)
     }
 
     // Return a response to acknowledge receipt of the event.
@@ -74,39 +93,68 @@ const webhookHandler = async (req: NextApiRequest, res: NextApiResponse) => {
   }
 }
 
-const updatedThePayment = async (connection, paymentIntent: Stripe.PaymentIntent) => {
+const updatedThePayment = async (connection, paymentIntent: string | Stripe.PaymentIntent, status: string) => {
+  try {
+    const paymentId: any = typeof paymentIntent == "string" ? paymentIntent : paymentIntent?.id;
+    const payment: Payments = await connection.manager.findOne(Payments, { where: { paymentSessionId: paymentId } });
+    if (payment) {
+      payment.updatedDate = moment().utc().toDate();
+      if (status == 'succeeded') {
+        payment.status = PaymentStatus.PAYMENT_COMPLETED;
+        // clear cart items if payment done
+        const cart = await connection.manager.findOne(Carts, { where: { userId: payment.userId } });
+        await connection.manager.createQueryBuilder()
+          .delete()
+          .from(CartItems)
+          .where('cartId = :cartId', { cartId: cart.id })
+          .execute();
 
-  const payment: Payments = await connection.manager.findOne(Payments, { where: { paymentSessionId: paymentIntent.id } });
-  if (payment) {
-    if (paymentIntent.status == 'succeeded') {
-      payment.status = PaymentStatus.DONE;
-      payment.updatedDate = new Date();
-      // clear cart items if payment done
-      const cart = await connection.manager.findOne(Carts, { where: { userId: payment.userId } });
-      await connection.manager.createQueryBuilder()
-        .delete()
-        .from(CartItems)
-        .where('cartId = :cartId', { cartId: cart.id })
-        .execute();
+      } else if (status == 'canceled') {
+        payment.status = PaymentStatus.CANCELED;
+      } else if (status == 'refund') {
+        const order: Orders = await connection.manager.findOne(Orders, { where: { paymentId: payment.id } });
+        if (order.status === OrderStatus.REFUND_REQUESTED) {
+          payment.status = PaymentStatus.CUSTOMER_CANCELED;
+        } else {
+          payment.status = PaymentStatus.VENDOR_REFUND;
+        }
 
-    } else if (paymentIntent.status == 'canceled') {
-      payment.status = PaymentStatus.CANCELED;
+      } else {
+        payment.status = status;
+      }
+      const savedPayment = await connection.manager.save(Payments, payment);
+      return payment;
     } else {
-      payment.status = PaymentStatus.FAILED;
+      console.error('Payment not found');
     }
-    return await connection.manager.save(Payments, payment);
-  } else {
-    console.error('Payment not found');
+  } catch (error) {
+    // log error
+  }
+}
+
+const updateOrder = async (connection, paymentId, status) => {
+  try {
+    const order: Orders = await connection.manager.findOne(Orders, { where: { paymentId } });
+    if (order) {
+      order.status = status;
+      order.updatedDate =  moment().utc().toDate();
+      await connection.manager.save(Orders, order);
+      return { status: true };
+    }
+  } catch (error) {
+    // LOG Order create failed
+    // LOG error.message
+    return { status: false, message: "Order create failed" }
   }
 }
 
 const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentIntent, payment: Payments) => {
   // LOG Payment status email init
   const order = await connection.manager.createQueryBuilder(Orders, 'orders')
-  .where('orders.paymentId = :paymentId', { paymentId: payment.id })
-  .leftJoinAndSelect('orders.orderDetails', 'cartItems')
-  .leftJoinAndSelect('cartItems.product', 'product')
-  .getOne();
+    .where('orders.paymentId = :paymentId', { paymentId: payment.id })
+    .leftJoinAndSelect('orders.orderDetails', 'cartItems')
+    .leftJoinAndSelect('cartItems.product', 'product')
+    .getOne();
   const products = [];
   _.each(order.orderDetails, order => {
     products.push({
@@ -129,15 +177,15 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
         "bill_amount": charge.amount,
         "products": products
       }, {
-        headers: {
-          client_id: process.env.CLIENT_ID,
-          client_secret: process.env.CLIENT_SECRET
-        }
-      })
-      //LOG Payment status email sent to 
-   } catch (error) {
-     // LOG error('Failed to sent payment success mail for payment id ')
-     // LOG error.message
+      headers: {
+        client_id: process.env.CLIENT_ID,
+        client_secret: process.env.CLIENT_SECRET
+      }
+    })
+    //LOG Payment status email sent to 
+  } catch (error) {
+    // LOG error('Failed to sent payment success mail for payment id ')
+    // LOG error.message
   }
 
 }
