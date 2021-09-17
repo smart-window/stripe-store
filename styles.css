@@ -378,3 +378,44 @@ pre {
   width: inherit;
   margin-top: 10px;
 }
+
+.btn-wrapper .orders-btn {
+  width: 250px;
+}
+
+.btn-wrapper .admin-btn {
+  background-color: #ff8000;
+  border-color: #ff8000;
+  color: white;
+}
+
+.btn-wrapper .customer-btn {
+  background-color: #4000ffbd;
+  border-color: #4000ffbd;
+  color: white;
+}
+
+.refund-modal {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refund-modal .form-label {
+  margin-right: 15px;
+}
+
+.refund-modal .custom-select {
+  height: 40px;
+}
+
+.refund-modal .modal-footer {
+  flex-direction: row;
+    justify-content: flex-end;
+    display: flex;
+}
+
+.refund-modal .btn {
+  width: fit-content;
+}

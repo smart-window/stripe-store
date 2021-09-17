@@ -166,7 +166,7 @@ const sendPaymentStatusEmail = async (connection, paymentIntent: Stripe.PaymentI
   });
   const charge: any = paymentIntent?.charges?.data[0] || {};
   try {
-    const response = await axios.post(CONFIG.LAMBDA_URL,
+    await axios.post(CONFIG.LAMBDA_URL,
       {
         "order_id": order.id,
         "customer_name": charge.billing_details.name,

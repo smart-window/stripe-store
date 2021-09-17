@@ -2,9 +2,7 @@ import {
   NextPageContext,
   NextComponentType,
 } from 'next';
-import DonatePage from '../containers/shopping-cart';
-import { addTodo } from '../actions';
-import { initializeStore, useStore } from '../store';
+import DashboardPage from '../containers/dashboard';
 
 interface IndexPageContext extends NextPageContext {
   store: any;
@@ -12,15 +10,11 @@ interface IndexPageContext extends NextPageContext {
 
 const IndexPageContext = () => {
 
-  return <DonatePage />
+  return <DashboardPage />
 }
 
 export async function getStaticProps() {
-  const store = initializeStore();
-  const { todo } = store.getState();
-  store.dispatch(addTodo(Object.assign(todo.item, {
-    value: '',
-  })));
+
   return {
     props: {},
   }

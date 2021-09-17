@@ -32,7 +32,9 @@ export enum OrderStatus {
 }
 
 export const RefundReason = [
-    'duplicate', 'fraudulent', 'requested_by_customer'
+    { name: "Duplicate", type: 'duplicate'},
+    { name: "Fraudulent", type: 'fraudulent'},
+    { name: "Requested By Customer", type: 'requested_by_customer'}
 ]
 
 export const PaymentStatusTypes = [
@@ -42,7 +44,7 @@ export const PaymentStatusTypes = [
 
 const config = {
     IP_CHECK_URL: "https://ipinfo.io/27.62.34.69/json?token=5da7f0e83e36e3",
-    LAMBDA_URL: "https://0h7un0j137.execute-api.ap-south-1.amazonaws.com/triggeremail"
+    LAMBDA_URL: "https://8max636p6k.execute-api.ap-south-1.amazonaws.com/dev/pdf"
 }
 
 export default config;

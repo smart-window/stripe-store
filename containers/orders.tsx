@@ -81,7 +81,7 @@ const OrdersPage: NextPage = () => {
   return (
     <div className="page-container">
       <h1>
-        My Orders
+        All Orders
 
         <Form className="status-select">
           <Form.Group controlId="exampleForm.SelectCustom">
@@ -96,17 +96,17 @@ const OrdersPage: NextPage = () => {
       </h1>
 
       <div>
-        <Modal show={show} onHide={handleClose}>
-          <Modal.Header closeButton>
+        <Modal show={show} onHide={handleClose} className="refund-modal">
+          <Modal.Header>
             <Modal.Title>Refund </Modal.Title>
           </Modal.Header>
           <Modal.Body>
             <Form>
               <Form.Group controlId="formReason">
                 <Form.Label>Refund Reason</Form.Label>
-                <Form.Control as="select" custom onChange={handleReasonChange}>
-                  {RefundReason.map((reason, index) => (
-                    <option key={index} value={reason}>{reason}</option>)
+                <Form.Control as="select" custom onChange={handleReasonChange} value={reason}>
+                  {RefundReason.map((reasonInfo, index) => (
+                    <option key={index} value={reasonInfo.type}>{reasonInfo.name}</option>)
                   )}
                 </Form.Control>
               </Form.Group>
@@ -114,7 +114,7 @@ const OrdersPage: NextPage = () => {
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleClose}>
-              Close
+              Cancel
             </Button>
             <Button variant="primary" onClick={handleSave}>
               Save
