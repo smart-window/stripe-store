@@ -47,7 +47,7 @@ const MyOrdersPage: NextPage = () => {
     }
     fetchPostJSON(
       "http://localhost:3000/api/orders/request-cancel",
-      { paymentId: order.payment.id }
+      { paymentId: order.payment.id, paymentSessionId: order.payment.paymentSessionId }
     ).then((response) => {
       if (response.statusCode === 500) {
         toast(response.message, { type: "error" });

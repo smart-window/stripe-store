@@ -48,3 +48,10 @@ const config = {
 }
 
 export default config;
+
+export const MailContent = {
+    REFUNDED : {title: "Refund Initiated",body : "Payment refund initiated for one of your order {orderId}. Payment will be credited to your account 3 to 7 days." },
+    CANCELLED : {title: "Cancellation Requested",body : "A product order cancecellation requested from the customer for order. please go visit {http://localhost:3000/orders} to accept it." },
+    FAILED : {title: "Payment Failed",body : "Your payment has been failed for order {orderId}. please retry the payment later." },
+   
+}
