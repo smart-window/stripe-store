@@ -11,7 +11,6 @@ interface IndexPageContext extends NextPageContext {
 }
 
 const IndexPageContext = () => {
-
   return <DonatePage />
 }
 

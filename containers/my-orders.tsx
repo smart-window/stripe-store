@@ -1,6 +1,5 @@
 import { NextPage } from 'next'
 import { useSelector, useDispatch } from 'react-redux'
-import moment from 'moment';
 import { Card, Button } from 'react-bootstrap'
 import { fetchGetJSON, fetchPostJSON } from '../utils/api-helpers'
 import config, { OrderStatus, PaymentStatus, PaymentStatusTypes } from '../config'
@@ -12,14 +11,14 @@ import { toast } from 'react-toastify';
 
 const MyOrdersPage: NextPage = () => {
   const dispatch = useDispatch();
-  const [isOrderFetched, setIsOrderFetched] = useState(false);
   const { filterText } = useSelector(selectOrderState);
   const allOrders = useSelector(selectOrders);
   const filteredOrders = useSelector(selectFilteredOrders);
 
+  // customer orders screen
   const handleFetchOrder = () => {
     fetchGetJSON(
-      'http://localhost:3000/api/orders/my-orders',
+      config.API_URL + '/orders/my-orders',
     ).then((response) => {
       if (response.statusCode === 500) {
         toast(response.message, { type: "error" });
@@ -42,11 +41,11 @@ const MyOrdersPage: NextPage = () => {
 
   const handleCancelOrder = (order) => {
     if (order.status === OrderStatus.REFUND_REQUESTED || order.status === OrderStatus.REFUNDED) {
-      toast("Already a is Refund initiated or Refund done", { type: "success" });
+      toast("Already a Refund is initiated or Refund done", { type: "warning" });
       return;
     }
     fetchPostJSON(
-      "http://localhost:3000/api/orders/request-cancel",
+      config.API_URL + "/orders/request-cancel",
       { paymentId: order.payment.id, paymentSessionId: order.payment.paymentSessionId }
     ).then((response) => {
       if (response.statusCode === 500) {
@@ -117,10 +116,6 @@ const MyOrdersPage: NextPage = () => {
                         <div className="order-label"> <span><b> Product Name : </b></span></div>
                         <div>{orderDetail?.product?.name}</div>
                       </div>
-                      {/* <div>
-                      <div className="order-label"> <span><b> Product Price : </b></span></div>
-                      <div>{orderDetail?.product?.price}</div>
-                    </div> */}
                     </div>
                     <div className="col-lg-5">
                       <div>

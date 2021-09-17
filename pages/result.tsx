@@ -23,7 +23,7 @@ const ResultPage: NextPage = () => {
     <div className="page-container">
         <h1>Checkout Payment Result</h1>
         <h2>Status: {data?.payment_intent?.status ?? 'loading...'}</h2>
-        <a href="/"> Go to Products</a>
+        <a href="/shopping-carts"> Go to Products</a>
      </div>
   )
 }

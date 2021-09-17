@@ -50,6 +50,7 @@
     "swr": "^0.1.16",
     "toml": "^3.0.0",
     "typeorm": "^0.2.31",
+    "pino-logflare": "^0.3.10",
     "typescript": "^4.1.5",
     "use-shopping-cart": "2.1.0"
   },

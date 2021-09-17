@@ -32,7 +32,7 @@ export const initialState: any = {
     case LOAD_ORDERS: {
       const newState = {...state };
       newState.data = data;
-      newState.filteredOrders = _.sortBy(state.data.filter(order => {
+      newState.filteredOrders = _.sortBy(newState.data.filter(order => {
         return order.payment.status === state.filterText || order.status === state.filterText || state.filterText === "All";
       }), "createdDate").reverse();
       _.each(newState.filteredOrders, (order) => {
@@ -43,7 +43,7 @@ export const initialState: any = {
     } 
     case FILTER_ORDERS: {
       const newState = {...state, filterText };
-      newState.filteredOrders = _.sortBy(state.data.filter(order => {
+      newState.filteredOrders = _.sortBy(newState.data.filter(order => {
         return order.payment.status === filterText || order.status === filterText || filterText === "All";
       }), "createdDate").reverse();
       _.each(newState.filteredOrders, (order) => {

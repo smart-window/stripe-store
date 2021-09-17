@@ -4,13 +4,14 @@ import moment from 'moment';
 import orders, { OrderState } from '../reducers/orders-reducer';
 import { Card, Button, Modal } from 'react-bootstrap'
 import { fetchGetJSON, fetchPostJSON } from '../utils/api-helpers'
-import config, { OrderStatus, PaymentStatus, PaymentStatusTypes, RefundReason } from '../config'
+import CONFIG, { OrderStatus, PaymentStatus, PaymentStatusTypes, RefundReason } from '../config'
 import { fetchOrdersAction, filterOrdersAction, loadOrdersAction } from '../actions';
 import { Form } from 'react-bootstrap';
 import React, { useState, useEffect } from 'react'
 import { selectFilteredOrders, selectOrders, selectOrderState } from '../selectors/orders-selectors';
 import { toast } from 'react-toastify';
 
+// admin order screen
 const OrdersPage: NextPage = () => {
   const dispatch = useDispatch();
   const [show, setShow] = useState(false);
@@ -23,7 +24,7 @@ const OrdersPage: NextPage = () => {
 
   const handleOrdersFetch = () => {
     fetchGetJSON(
-      'http://localhost:3000/api/orders',
+      CONFIG.API_URL +'/orders',
     ).then((response) => {
       if (response.statusCode === 500) {
         toast(response.message, { type: "error" });
@@ -38,10 +39,10 @@ const OrdersPage: NextPage = () => {
     handleOrdersFetch();
   }, [dispatch])
 
-  const handleCancelOrder = (order, type) => {
+  const handleCancelOrder = (order, type, reason) => {
     fetchPostJSON(
-      "http://localhost:3000/api/orders",
-      { paymentId: order.payment.paymentSessionId, type }
+      CONFIG.API_URL + "/orders",
+      { paymentId: order.payment.paymentSessionId, type, reason }
     ).then((response) => {
       if (response.statusCode === 500) {
         toast(response.message, { type: "error" });
@@ -57,16 +58,16 @@ const OrdersPage: NextPage = () => {
   const handleShow = () => setShow(true);
 
   const handleSave = () => {
-    if(!reason) {
+    if (!reason) {
       toast("Please select a reason", { type: "warning" });
       return;
     }
-    handleCancelOrder(activeOrder, reason);
+    handleCancelOrder(activeOrder, PaymentStatus.VENDOR_REFUND, reason);
     handleClose();
   };
 
-  const handleReasonChange = (reason) => {
-    setReason(reason);
+  const handleReasonChange = (event) => {
+    setReason(event.target.value);
   };
 
   const handleRefund = (order) => {
@@ -145,7 +146,11 @@ const OrdersPage: NextPage = () => {
                   </div>
                   <div className="col-lg-2">
                     {PaymentStatus.PAYMENT_COMPLETED == order.payment.status && [OrderStatus.REFUND_REQUESTED].includes(order.status)
-                      ? <Button variant="primary" onClick={() => handleCancelOrder(order, PaymentStatus.CUSTOMER_CANCELED)}>Accept Cancellation</Button> : ""}
+                      ? <Button variant="primary" onClick={() => handleCancelOrder(order,PaymentStatus.CUSTOMER_CANCELED, CONFIG.CUSTOMER_REQUESTED_REASON)}>
+                        Accept Cancellation
+                      </Button>
+                      : ""
+                    }
 
                     {PaymentStatus.PAYMENT_COMPLETED == order.payment.status && [OrderStatus.ORDER_DELIVERED, OrderStatus.ORDER_PLACED].includes(order.status)
                       ? <Button variant="warning" onClick={() => handleRefund(order)}>Refund</Button> : ""
@@ -166,10 +171,6 @@ const OrdersPage: NextPage = () => {
                         <div className="order-label"> <span><b> Product Name : </b></span></div>
                         <div>{orderDetail?.product?.name}</div>
                       </div>
-                      {/* <div>
-                      <div className="order-label"> <span><b> Product Price : </b></span></div>
-                      <div>{orderDetail?.product?.price}</div>
-                    </div> */}
                     </div>
                     <div className="col-lg-5">
                       <div>

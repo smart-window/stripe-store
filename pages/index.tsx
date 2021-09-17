@@ -14,7 +14,6 @@ const IndexPageContext = () => {
 }
 
 export async function getStaticProps() {
-
   return {
     props: {},
   }

@@ -1,3 +1,5 @@
+import { MailContent } from "../config"
+
 export function formatAmountForDisplay(
   amount: number,
   currency: string
@@ -28,3 +30,22 @@ export function formatAmountForStripe(
   }
   return zeroDecimalCurrency ? amount : Math.round(amount * 100)
 }
+
+export function getMessageContent(type) {
+  let mailContent = { title: null, body: null };
+  switch (type) {
+    case "charge.refunded":
+      mailContent = MailContent.REFUNDED;
+      break;
+    case "payment_intent.canceled":
+      mailContent = MailContent.FAILED;
+      break;
+    case "payment_intent.payment_failed":
+      mailContent = MailContent.FAILED;
+      break;
+    default:
+      mailContent = mailContent;
+      break;
+  }
+  return mailContent;
+};

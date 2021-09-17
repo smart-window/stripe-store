@@ -1,16 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next'
-
-import { CURRENCY, MIN_AMOUNT, MAX_AMOUNT, PaymentStatus, OrderStatus } from '../../../config'
-
-import Stripe from 'stripe'
-import { Payments } from '../../../src/entity/Payments'
 import getDatabaseConnection from '../../../lib/getDatabaseConnection'
 import { Orders } from '../../../src/entity/Orders'
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  // https://github.com/stripe/stripe-node#configuration
-  apiVersion: '2020-08-27',
-})
 
+const logger = require('pino')();
+
+// fetches customers all orders
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -18,11 +12,12 @@ export default async function handler(
   try {
     const connection = await getDatabaseConnection();
    if (req.method === 'GET') {
+      const userId = 1; // get this userId from token
       const orders = await connection.manager.createQueryBuilder(Orders, 'order')
         .innerJoinAndSelect('order.orderDetails', 'orderDetails')
         .innerJoinAndSelect('order.payment', 'payment')
         .innerJoinAndSelect('orderDetails.product', 'product')
-        .where('order.userId = :userId', { userId: 1 })
+        .where('order.userId = :userId', { userId })
         .getMany();
       res.status(200).json(orders)
     } else {
@@ -30,6 +25,7 @@ export default async function handler(
       res.status(405).end('Method Not Allowed');
     }
   } catch (err) {
+    logger.error(`Failed to fetch my orders, ${err.message}`)
     res.status(500).json({ statusCode: 500, message: err.message })
   }
 }

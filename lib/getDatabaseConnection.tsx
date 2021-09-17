@@ -10,6 +10,7 @@ import { Carts } from '../src/entity/Carts';
 import { CartItems } from '../src/entity/CartItems';
 
 const connectionManager = getConnectionManager();
+const logger = require('pino')()
 
 export const getDatabaseConnection = async (optionOverrides: Record<string, any> = {}): Promise<Connection> => {
     const connectionOptions = await getConnectionOptions();
@@ -23,10 +24,9 @@ export const getDatabaseConnection = async (optionOverrides: Record<string, any>
             await connectionManager.get('default').close();
         }
     } catch (error) {
-        console.log("ERROR getConnection ", JSON.stringify(error));
+        logger.error("ERROR getConnection " + error.message);
     }
     return await createConnection(options);
-
 };
 
 export default getDatabaseConnection;

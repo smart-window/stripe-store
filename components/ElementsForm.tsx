@@ -53,12 +53,12 @@ const ElementsForm = () => {
         return <h2>Authenticating...</h2>
 
       case 'succeeded':
-        return <h2>Payment Succeeded 🥳</h2>
+        return <h2>Payment Succeeded </h2>
 
       case 'error':
         return (
           <>
-            <h2>Error 😭</h2>
+            <h2>Error </h2>
             <p className="error-message">{errorMessage}</p>
           </>
         )
