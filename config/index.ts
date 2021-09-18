@@ -62,7 +62,7 @@ export const countryTypePaymentMethodsMap = {
 const config = {
     API_URL: "http://localhost:3000/api",
     CUSTOMER_REQUESTED_REASON: "requested_by_customer",
-    IP_CHECK_URL: "https://ipinfo.io/27.62.34.69/json?token=5da7f0e83e36e3",
+    IP_CHECK_URL: "https://ipinfo.io/json?token=5da7f0e83e36e3",
     LAMBDA_URL: "https://8max636p6k.execute-api.ap-south-1.amazonaws.com/dev/pdf"
 }
 

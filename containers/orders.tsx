@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 const OrdersPage: NextPage = () => {
   const dispatch = useDispatch();
   const [show, setShow] = useState(false);
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState(RefundReason[0].type);
   const [activeOrder, setActiveOrder] = useState({});
   const { filterText } = useSelector(selectOrderState);
   const allOrders = useSelector(selectOrders);
@@ -31,7 +31,6 @@ const OrdersPage: NextPage = () => {
         return;
       }
       dispatch(loadOrdersAction(response));
-      toast(response.message, { type: "success" });
     });
   }
 
@@ -49,7 +48,7 @@ const OrdersPage: NextPage = () => {
         return;
       }
       handleOrdersFetch();
-      toast(response.message, { type: "success" });
+      toast("Order refund initiated", { type: "success" });
     })
   }
 

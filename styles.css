@@ -389,8 +389,20 @@ pre {
   color: white;
 }
 
-.btn-wrapper .customer-btn {
+.btn-wrapper .admin-btn:hover, .btn-wrapper .admin-btn:active {
+  background-color: #da6f03;
+  border-color: #ff8000;
+  color: white;
+}
+
+.btn-wrapper .customer-btn  {
   background-color: #4000ffbd;
+  border-color: #4000ffbd;
+  color: white;
+}
+
+.btn-wrapper .customer-btn:hover, .btn-wrapper .customer-btn:active  {
+  background-color: #2a049bbd;
   border-color: #4000ffbd;
   color: white;
 }
