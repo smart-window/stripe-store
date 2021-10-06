@@ -60,6 +60,7 @@ export const countryTypePaymentMethodsMap = {
   }
 
 const config = {
+    defaultCountryName: "Russia",
     API_URL: "http://localhost:3000/api",
     CUSTOMER_REQUESTED_REASON: "requested_by_customer",
     IP_CHECK_URL: "https://ipinfo.io/json?token=5da7f0e83e36e3",

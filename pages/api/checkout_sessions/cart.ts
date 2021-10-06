@@ -83,11 +83,11 @@ export default async function handler(
         params
       )
       const paymentId = typeof checkoutSession.payment_intent == "string" ? checkoutSession.payment_intent : checkoutSession.payment_intent.id;
-      const paymentResponse = await createPayment(connection, req.body.userId, totalPrice, paymentId);
+      const paymentResponse = await createPayment(req.body.userId, totalPrice, paymentId);
       if (!paymentResponse.status) {
         return res.status(500).json(paymentResponse);
       }
-      const orderResponse = await createOrderAndDetails(connection, req.body.userId, paymentResponse.paymentEntity.id, cartItems);
+      const orderResponse = await createOrderAndDetails(req.body.userId, paymentResponse.paymentEntity.id, cartItems);
       if (!orderResponse.status) {
         return res.status(500).json(orderResponse);
       }
@@ -155,8 +155,9 @@ const createCartAndDetails = async (connection, userId, cartItems) => {
 
 }
 
-const createPayment = async (connection, userId, totalPrice, paymentId) => {
+const createPayment = async (userId, totalPrice, paymentId) => {
   try {
+    const connection = await getDatabaseConnection();
     const payment = new Payments();
     payment.userId = userId;
     payment.paymentMode = 'card';
@@ -172,8 +173,9 @@ const createPayment = async (connection, userId, totalPrice, paymentId) => {
   }
 }
 
-const createOrderAndDetails = async (connection, userId, paymentId, cartItems) => {
+const createOrderAndDetails = async (userId, paymentId, cartItems) => {
   try {
+    const connection = await getDatabaseConnection();
     const orderItemList: OrderDetails[] = [];
     const order = new Orders();
     order.paymentId = paymentId;
@@ -196,6 +198,7 @@ const createOrderAndDetails = async (connection, userId, paymentId, cartItems) =
     return { status: true };
   } catch (error) {
     logger.error("Order and OrderDetails create failed");
+    logger.error(error.message);
     return { status: false, message: "Order create failed" }
   }
 }
