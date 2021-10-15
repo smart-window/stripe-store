@@ -2,30 +2,21 @@ import {
   NextPageContext,
   NextComponentType,
 } from 'next';
-import { compose } from 'recompose';
-import { connect } from 'react-redux';
-import DonatePage from '../containers/shopping-cart';
-import { addTodo } from '../actions';
-import { Store } from '../store';
+import DashboardPage from '../containers/dashboard';
 
 interface IndexPageContext extends NextPageContext {
-  store: Store;
+  store: any;
 }
 
-const IndexPage: NextComponentType<IndexPageContext> = compose()(DonatePage);
+const IndexPageContext = () => {
 
-IndexPage.getInitialProps = ({ store, req }) => {
-  const isServer: boolean = !!req;
-  const { todo } = store.getState();
+  return <DashboardPage />
+}
 
-  // we can add any custom data here
-  // for examle, the data from api server
-  store.dispatch(addTodo(Object.assign(todo.item, {
-    value: '',
-  })));
+export async function getStaticProps() {
   return {
-    isServer,
-  };
+    props: {},
+  }
 }
 
-export default connect()(IndexPage);
+export default IndexPageContext

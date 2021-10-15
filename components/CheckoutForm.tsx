@@ -7,7 +7,6 @@ import { fetchGetJSON, fetchPostJSON } from '../utils/api-helpers'
 import { formatAmountForDisplay } from '../utils/stripe-helpers'
 import config, {MAX_AMOUNT, AMOUNT_STEP, CURRENCY, MIN_AMOUNT} from '../config'
 import _ from 'lodash'
-import { getAllInfoByISO, getISOByParam } from 'iso-country-currency'
 
 const CheckoutForm = () => {
   const [loading, setLoading] = useState(false);

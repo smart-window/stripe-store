@@ -1,4 +1,5 @@
-import {Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, Timestamp} from 'typeorm';
+import {Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, Timestamp} from 'typeorm';
+import { Orders } from './Orders';
 
 @Entity('payments')
 export class Payments {
@@ -25,5 +26,9 @@ export class Payments {
 
     @Column('timestamp', { name: "updated_at", primary: false, nullable: true })
     updatedDate: Date;
+
+    @OneToOne(type => Orders, orders =>  orders.payment)
+    @JoinColumn({ name: "id"})
+    orders: Orders;
 
 }

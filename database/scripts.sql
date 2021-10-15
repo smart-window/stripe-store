@@ -17,3 +17,5 @@ CREATE TABLE `cart_items` (
 INSERT INTO ecommerce.users
 (first_name, last_name)
 VALUES('Jhon', 'Doe');
+
+ALTER TABLE ecommerce.orderdetail ADD amount varchar(100) NOT NULL;

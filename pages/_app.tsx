@@ -1,22 +1,30 @@
 import { NextPageContext } from 'next';
-import App from 'next/app';
-import withRedux from 'next-redux-wrapper';
-import { Provider } from 'react-redux';
-import store, { Store } from '../store';
-import '../styles.css'
+import { useStore } from '../store'
+import { Provider } from 'react-redux'
+import { persistStore } from 'redux-persist'
+import { PersistGate } from 'redux-persist/integration/react'
+import { ToastContainer, toast } from 'react-toastify';
+import '../styles.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-toastify/dist/ReactToastify.css';
+
 interface AppContext extends NextPageContext {
-  store: Store;
+  store: any;
 }
 
-class MyApp extends App<AppContext> {
-  render() {
-    const { store, Component, ...props } = this.props;
-    return (
-      <Provider store={store}>
-        <Component {...props} />
-      </Provider>
-    );
-  }
+export default function App({ Component, pageProps }) {
+  const store = useStore(pageProps)
+  const persistor = persistStore(store, {}, function () {
+    persistor.persist()
+  })
+
+  return (
+    <Provider store={store}>
+      <PersistGate loading={<div>loading</div>} persistor={persistor}>
+        <Component {...pageProps} />
+        <ToastContainer />
+      </PersistGate>
+    </Provider>
+  )
 }
 
-export default withRedux(store)(MyApp);

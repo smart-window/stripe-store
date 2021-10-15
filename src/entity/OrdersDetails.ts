@@ -15,6 +15,9 @@ export class OrderDetails {
     @JoinColumn({ name: "product_id"})
     product: Products;
 
+    @Column("varchar", { name: "amount" ,nullable: false })
+    amount: string;
+
     @Column('int', { name: "product_id" ,nullable: false })
     productId: number;
 
@@ -27,5 +30,6 @@ export class OrderDetails {
     @Column('timestamp', { name: "created_at", primary: false, nullable: true })
     createdDate: Date;
 
-
+    @Column('timestamp', { name: "updated_at", primary: false, nullable: true })
+    updatedDate: Date;
 }

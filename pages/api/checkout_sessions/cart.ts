@@ -18,23 +18,23 @@ import { Products } from '../../../src/entity/Products'
 import { Payments } from '../../../src/entity/Payments'
 import { OrderDetails } from '../../../src/entity/OrdersDetails'
 import { Orders } from '../../../src/entity/Orders'
-import { PaymentStatus } from '../../../config'
+import { countryTypePaymentMethodsMap, PaymentStatus } from '../../../config'
+import moment from 'moment'
+
+const logger = require('pino')();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  // https://github.com/stripe/stripe-node#configuration
   apiVersion: '2020-08-27',
 })
 
-const countryTypePaymentMethodsMap = {
-  Belgium: ['bancontact', 'sofort'],
-  Austria: ['eps', 'sofort'],
-  Germany: ['giropay', 'sofort'],
-  Netherlands: ['ideal', 'sofort'],
-  Poland: ['p24'],
-  Spain: ['sofort'],
-  Italy: ['sofort'],
-  Switzerland: ['sofort'],
-}
-
+/**
+ * On cart checkout, create
+ * 1. cart and cart details
+ * 2. create payment with status "pending"
+ * 3. create order and order details
+ * @param req 
+ * @param res 
+ * @returns 
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
@@ -47,6 +47,7 @@ export default async function handler(
       if (!validateCartItems(connection, cartItems)) {
         throw new Error(`Product not found!`)
       }
+      logger.info("Cart items valid");
       const line_items = [];
       let totalPrice = 0;
       _.each(cartItems, productInfo => {
@@ -82,21 +83,23 @@ export default async function handler(
         params
       )
       const paymentId = typeof checkoutSession.payment_intent == "string" ? checkoutSession.payment_intent : checkoutSession.payment_intent.id;
-      const paymentResponse = await createPayment(connection, req.body.userId, totalPrice, paymentId);
+      const paymentResponse = await createPayment(req.body.userId, totalPrice, paymentId);
       if (!paymentResponse.status) {
         return res.status(500).json(paymentResponse);
       }
-      const orderResponse = await createOrderAndDetails(connection, req.body.userId, paymentResponse.paymentEntity.id, cartItems);
+      const orderResponse = await createOrderAndDetails(req.body.userId, paymentResponse.paymentEntity.id, cartItems);
       if (!orderResponse.status) {
         return res.status(500).json(orderResponse);
       }
       res.status(200).json(checkoutSession)
     } catch (err) {
+      logger.error(`Error on pre checkout ${err.message}`);
       res.status(500).json({ statusCode: 500, message: err.message })
     }
   } else {
-    res.setHeader('Allow', 'POST')
-    res.status(405).end('Method Not Allowed')
+    logger.error(`Method Not Allowed`);
+    res.setHeader('Allow', 'POST');
+    res.status(405).end('Method Not Allowed');
   }
 }
 
@@ -107,7 +110,6 @@ const validateCartItems = async (connection, cartDetails) => {
   const isValid = !_.some(products, product => {
     return !productIds.includes(product.id);
   });
-  // Log isValid
   return isValid
 }
 
@@ -145,16 +147,17 @@ const createCartAndDetails = async (connection, userId, cartItems) => {
       // LOG Cart created
       resolve("success");
     } catch (error) {
-      console.error("Cart creation failed ");
-      console.error(error.message);
+      logger.error("Cart creation failed ");
+      logger.error(error.message);
       reject("cart creation failed")
     }
   });
 
 }
 
-const createPayment = async (connection, userId, totalPrice, paymentId) => {
+const createPayment = async (userId, totalPrice, paymentId) => {
   try {
+    const connection = await getDatabaseConnection();
     const payment = new Payments();
     payment.userId = userId;
     payment.paymentMode = 'card';
@@ -162,34 +165,40 @@ const createPayment = async (connection, userId, totalPrice, paymentId) => {
     payment.amount = totalPrice.toString();
     payment.paymentSessionId = paymentId;
     const paymentEntity = await connection.manager.save(Payments, payment);
-    // LOG Payment Created
+    logger.info("Payment create");
     return { status: true, paymentEntity }
   } catch (error) {
-    // LOG error Payment create failed
-    // LOG error.message
+    logger.error("Payment create failed");
     return { status: false, message: "Payment create failed" }
   }
 }
 
-const createOrderAndDetails = async (connection, userId, paymentId, cartItems) => {
+const createOrderAndDetails = async (userId, paymentId, cartItems) => {
   try {
+    const connection = await getDatabaseConnection();
     const orderItemList: OrderDetails[] = [];
     const order = new Orders();
     order.paymentId = paymentId;
     order.userId = userId;
+    order.createdDate =  moment().utc().toDate();
+    order.updatedDate =  moment().utc().toDate();
     const orderEntity = await connection.manager.save(Orders, order);
     _.each(cartItems, product => {
       const orderDetail = new OrderDetails();
+      let amount = product.quantity * Number.parseFloat(product.price);
       orderDetail.productId = product.id;
+      orderDetail.amount = amount.toString();
       orderDetail.quantity = product.quantity;
       orderDetail.orderId = orderEntity.id;
+      orderDetail.createdDate =  moment().utc().toDate();
+      orderDetail.updatedDate =  moment().utc().toDate();
       orderItemList.push(orderDetail);
     })
     await connection.manager.save(OrderDetails, orderItemList);
     return { status: true };
   } catch (error) {
-    // LOG Order create failed
-    // LOG error.message
+    logger.error("Order and OrderDetails create failed");
+    logger.error(error.message);
     return { status: false, message: "Order create failed" }
   }
 }

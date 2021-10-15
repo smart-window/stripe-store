@@ -328,3 +328,106 @@ pre {
 .item-count-select {
   float: right;
 }
+
+.card {
+  width: 100%;
+  height: initial;
+  min-height: 250px;
+  max-height: 350px;
+  overflow-y: auto;
+}
+
+.order-label {
+  margin-bottom: 10px;
+}
+
+.product-name-wrapper {
+  margin-bottom: 25px;
+}
+
+.page-container h1 {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.page-container h1 form {
+  margin-top: 15px;
+}
+
+.status-select {
+  float: right;
+  font-size: 20px;
+}
+
+.status-select label {
+  margin-right: 15px;
+}
+
+.count-span {
+    margin-bottom: 15px;
+    float: right;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.orders-btn {
+  font-size: 20px;
+  float: right;
+  width: inherit;
+  margin-top: 10px;
+}
+
+.btn-wrapper .orders-btn {
+  width: 250px;
+}
+
+.btn-wrapper .admin-btn {
+  background-color: #ff8000;
+  border-color: #ff8000;
+  color: white;
+}
+
+.btn-wrapper .admin-btn:hover, .btn-wrapper .admin-btn:active {
+  background-color: #da6f03;
+  border-color: #ff8000;
+  color: white;
+}
+
+.btn-wrapper .customer-btn  {
+  background-color: #4000ffbd;
+  border-color: #4000ffbd;
+  color: white;
+}
+
+.btn-wrapper .customer-btn:hover, .btn-wrapper .customer-btn:active  {
+  background-color: #2a049bbd;
+  border-color: #4000ffbd;
+  color: white;
+}
+
+.refund-modal {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refund-modal .form-label {
+  margin-right: 15px;
+}
+
+.refund-modal .custom-select {
+  height: 40px;
+}
+
+.refund-modal .modal-footer {
+  flex-direction: row;
+    justify-content: flex-end;
+    display: flex;
+}
+
+.refund-modal .btn {
+  width: fit-content;
+}

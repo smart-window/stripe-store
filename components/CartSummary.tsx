@@ -25,20 +25,10 @@ const CartSummary = () => {
   useEffect(() => setCartEmpty(!cartCount), [cartCount])
 
   useEffect(() => {
-    fetchGetJSON(
-      config.IP_CHECK_URL
-    ).then((response) => {
-      if (response.statusCode === 500) {
-        console.error(response.message)
-        return;
-      }
-      const country = getAllInfoByISO(response.country);
-      if(!_.find(countries, (countryStr) => countryStr === country.countryName)) {
-        setCountries((countries) => [...countries, country.countryName]);
-      }
-      setCountry(() => country.countryName);
-      setClientDetails(() => response); 
-    })
+    if(!_.find(countries, (countryStr) => countryStr === config.defaultCountryName)) {
+      setCountries((countries) => [...countries, config.defaultCountryName]);
+    }
+    setCountry(() => config.defaultCountryName);
   }, []);
 
   const handleCheckout: React.FormEventHandler<HTMLFormElement> = async (
@@ -112,10 +102,10 @@ const CartSummary = () => {
       </button>
       <style jsx>{`
         .country-select {
+          font-size: 15px;
           float: right;
         }
         .country-select label {
-          font-size: 15px;
           margin-right: 10px;
           color: black;
         }

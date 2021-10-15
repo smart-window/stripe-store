@@ -30,6 +30,7 @@ const Products = () => {
   }, []);
 
   const handleAddItem = async (product) => {
+    // show upto 10 count. Above 10 will be 10+
     const count = (product.count == '10+' ? 10 : Number.parseInt(product.count));
     const productInfo = {
       ...product,
