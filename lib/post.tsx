@@ -17,7 +17,6 @@ export const getPost = async () => {
     });
 };
 
-
 export const getPostById = (id: string) => {
     const fullPath = path.join(markdownDir, `${id}.md`),
         fileContent = fs.readFileSync(fullPath, 'utf-8'),

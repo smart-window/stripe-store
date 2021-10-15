@@ -16,7 +16,13 @@ const IndexPage: NextComponentType<IndexPageContext> = compose()(DonatePage);
 
 IndexPage.getInitialProps = ({ store, req }) => {
   const isServer: boolean = !!req;
+  const { todo } = store.getState();
 
+  // we can add any custom data here
+  // for examle, the data from api server
+  store.dispatch(addTodo(Object.assign(todo.item, {
+    value: '',
+  })));
   return {
     isServer,
   };

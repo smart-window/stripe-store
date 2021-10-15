@@ -7,7 +7,7 @@ export default function withSession(handler: NextApiHandler | GetServerSideProps
         password: process.env.SECRET_COOKIE_PASSWORD,
         cookieName: 'bloger',
         cookieOptions: {
-            secure: false  // https的cookie不可以发给http,反之可以
+            secure: false 
         }
     });
 }

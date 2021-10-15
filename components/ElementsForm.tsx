@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
 
 import CustomDonationInput from '../components/CustomDonationInput'
-import PrintObject from '../components/PrintObject'
 
 import { fetchPostJSON } from '../utils/api-helpers'
 import { formatAmountForDisplay } from '../utils/stripe-helpers'
@@ -166,7 +165,6 @@ const ElementsForm = () => {
         </button>
       </form>
       <PaymentStatus status={payment.status} />
-      <PrintObject content={payment} />
     </>
   )
 }

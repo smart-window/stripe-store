@@ -25,3 +25,18 @@ $ yarn dev (or `npm run dev`)
 $ yarn build (or `npm run build`)
 $ yarn start (or `npm start`)
 ```
+
+# To test the payment flow in local
+
+# 1. Place the .env file in the project root with strip keys, webhook key and lambda trigger keys
+# 2. Use the stripe test cards for card payments
+- 4242424242424242  for success flow test
+# 3. To test webhook and lambda email trigger
+  - install stripe cli from https://stripe.com/docs/stripe-cli also refer https://stripe.com/docs/webhooks/integration-builder
+  - extract downloaded zip and open stripe cli in cmd for windows
+  - cd path-to-stripe-extrated-folder and you will see a stripe.exe file from this directory execute following commands
+  - login the strip cli. This will open the browser and your stripe account. Accept the verification by login into your stripe account.
+   $ stripe login
+  - listen to the webhook and redirect to localhost
+   $ stripe listen --forward-to localhost:3000/api/webhooks
+   
